@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+
+<html lang="zh-cn">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>向xxx提问</title>
+
+    <!-- UIkit CSS -->
+    <link rel="stylesheet" href="uikit.css" />
+
+    <!-- UIkit JS -->
+    <script src="uikit.js"></script>
+    <script src="uikit-icon.js"></script>
+
+</head>
+
+<body style="overflow-y:scroll;">
+    <p></p>
+    <div class="uk-container">
+        <div class="uk-card uk-card-default uk-card-body">
+            <h3>Ask me anything!</h3>
+            <p>你可以在这里问任何问题~</p>
+            <textarea class="uk-textarea" rows="5" id="q"></textarea>
+            <p>提问不会泄露你的个人隐私，点击查看<span style="display:inline-block;"><a href="privacy.html">隐私政策</a></span></p>
+            <button id="s" class="uk-button uk-button-primary uk-align-right" onclick="submit()">提问 </button>
+        </div>
+
+    </div>
+    <p></p>
+    <div class="uk-container">
+        <div class="uk-card uk-card-default uk-card-body">
+            <h3>已回答的问题</h3>
+            <p class="uk-article-meta">点击问题名称查看回答</p>
+            <div uk-spinner="ratio: 0.5" id="q-pending"></div>
+            <ul id="questions" uk-accordion></ul>
+
+        </div>
+
+    </div>
+    <p></p>
+
+
+    <script src="//imgcache.qq.com/qcloud/tcbjs/1.9.0/tcb.js"></script>
+    <script>
+        const app = tcb.init({
+            env: 'xxx' // 请替换为你的环境名
+        });
+        const auth = app.auth();
+
+        async function login() {
+            await auth.signInAnonymously();
+            // 匿名登录成功检测登录状态isAnonymous字段为true
+            const loginState = await auth.getLoginState();
+            console.log(loginState.isAnonymousAuth); // true
+        }
+
+        login();
+        var db = app.database();
+
+        setTimeout(function () {
+            db.collection('your-db-name') //请替换成你的collection name
+                .where({
+                    answer: db.command.neq("请等待回答")
+                })
+                .get()
+                .then(res => {
+                    document.getElementById("q-pending").setAttribute("hidden", "true");
+                    res.data.forEach(element => {
+                        if (element.statement.length > 20) {
+                            document.getElementById("questions").innerHTML +=
+                                "<li><a class=\"uk-accordion-title\" onclick=\"window.location.href = ('query.html?id=" + element._id + "')\">Q："
+                                + element.statement.substring(0, 20)
+                                + "…</a></li>"
+                        } else {
+                            document.getElementById("questions").innerHTML +=
+                                "<li><a class=\"uk-accordion-title\" href=\"#\">Q："
+                                + element.statement
+                                + "</a><div class=\"uk-accordion-content\">"
+                                + element.answer + "</div></li>"
+                        }
+                    });
+                });
+        }, 1000);
+
+
+
+
+        function submit() {
+            // 2. 构造查询语句
+            // collection() 方法获取一个集合的引用
+            // where() 方法传入一个 query 对象，数据库返回集合中字段等于指定值的 JSON 文档。
+            // get() 方法会触发网络请求，往数据库取数据
+            document.getElementById("s").disabled = true;
+            document.getElementById("s").setAttribute("uk-spinner", "ratio: 0.5");
+            console.log("true");
+            setTimeout(function () {
+                document.getElementById("s").disabled = false;
+                document.getElementById("s").removeAttribute("uk-spinner");
+                UIkit.modal.alert('遇到了一些问题，请再试一次');
+            }, 2000);
+
+            db.collection('questions')
+                .add({
+                    statement: document.getElementById("q").value,
+                    answer: '请等待回答'
+                })
+                .then(res => {
+                    window.location.href = ("query.html?id=" + res.id);
+                })
+        }
+    </script>
+
+
+</body>
+
+</html>

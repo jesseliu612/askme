@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+
+<html lang="zh-cn">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>查看回答</title>
+    <!-- UIkit CSS -->
+    <link rel="stylesheet" href="uikit.css" />
+    <!-- UIkit JS -->
+    <script src="uikit.js"></script>
+    <script src="uikit-icon.js"></script>
+</head>
+
+<body>
+    <p></p>
+    <div class="uk-container">
+        <div class="uk-card uk-card-default uk-card-body">
+            <h3 class="uk-card-title" id="q"></h3>
+            <p><span id="a"></span></p>
+            <p class="uk-article-meta">Tip！收藏本网页可以快速找到这个问题哦（微信中可以点击右上角...选择“收藏”）</p>
+            <a href="index.html" class="uk-link">
+                < 返回</a>
+
+        </div>
+
+    </div>
+    <p></p>
+
+
+    <script src="//imgcache.qq.com/qcloud/tcbjs/1.9.0/tcb.js"></script>
+    <script>
+        const app = tcb.init({
+            env: 'xxx' // 请替换为你的环境名
+        });
+        const auth = app.auth();
+
+        async function login() {
+            await auth.signInAnonymously();
+            // 匿名登录成功检测登录状态isAnonymous字段为true
+            const loginState = await auth.getLoginState();
+            console.log(loginState.isAnonymousAuth); // true
+        }
+
+        login();
+
+        function get(name) {
+            if (name = (new RegExp('[?&]' + encodeURIComponent(name) + '=([^&]*)')).exec(location.search))
+                return decodeURIComponent(name[1]);
+        }
+        var db = app.database();
+        console.log(get("id"));
+        db.collection('your-db-name') //请替换成你的collection name
+            .where({
+                _id: db.command.eq(get("id"))
+            })
+            .get()
+            .then(res => {
+                console.log(res);
+                document.getElementById("q").innerHTML = "Q：" + res.data[0]["statement"];
+                document.getElementById("a").innerHTML = "" + res.data[0]["answer"];
+            });
+
+
+    </script>
+
+
+</body>
+
+</html>
